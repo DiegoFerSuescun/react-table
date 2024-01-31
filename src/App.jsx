@@ -6,7 +6,7 @@ function App (){
 
   const columns = [
     {
-        header: "ID",
+        header: "Propiedad ID",
         accessorKey: 'id',
         footer: 'Mi Id'
     },
