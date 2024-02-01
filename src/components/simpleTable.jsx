@@ -47,7 +47,7 @@ const defaultColumn = {
         <div>
           <DatePicker
             value={value ? moment(value) : null}
-            format="DD-MM-YY"
+            format="DD-MM-YYYY"
             onChange={onChange}
           />
 
