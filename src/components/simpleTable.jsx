@@ -1,9 +1,10 @@
-import { useReactTable, getCoreRowModel, flexRender, getPaginationRowModel, getSortedRowModel, getFilteredRowModel,getFacetedRowModel,getFacetedUniqueValues,sortingFns,} from "@tanstack/react-table";
+import { useReactTable, getCoreRowModel, flexRender, getPaginationRowModel, getSortedRowModel, getFilteredRowModel,getFacetedRowModel,getFacetedUniqueValues,sortingFns, } from "@tanstack/react-table";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { makeData } from "./makeData";
 import { faker } from '@faker-js/faker'
 import moment from 'moment';
-import { DatePicker, Space } from 'antd';
+import { DatePicker, Space, Pagination  } from 'antd';
+import './simpleTable.css';
 
 
 const defaultColumn = {
@@ -11,6 +12,27 @@ const defaultColumn = {
 
     if( id === 'progress'){
       const progressOptions = [10, 20, 30, 40, 50]; // Puedes personalizar las opciones
+
+      const initialValue = getValue();
+      const [value, setValue] = useState(initialValue);
+
+      const onChange = (e) => {
+        setValue(e.target.value);
+        table.options.meta?.updateData(index, id, e.target.value);
+      };
+
+      return (
+        <select value={value} onChange={onChange}>
+          {progressOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      );
+    };
+    if( id === 'status'){
+      const progressOptions = ["complicated", "single", "relationship"]; // Puedes personalizar las opciones
 
       const initialValue = getValue();
       const [value, setValue] = useState(initialValue);
@@ -108,6 +130,9 @@ function SimpleTable () {
     const [endDate, setEndDate] = useState("");
     const [pageSize, setPageSize] = useState(15);
 
+    const [error, setError] = useState("");
+    const [isEditingEnabled, setIsEditingEnabled] = useState(true);
+    
     //EditCeldas
     const columnss = useMemo(
       () => [
@@ -179,6 +204,11 @@ function SimpleTable () {
         meta: {
           updateData: ( rowIndex, columnId, value) => {
             skipAutoresetPageIndex()
+            const isValueEmpty = value === "" || value === null || value === undefined;
+            if (isValueEmpty) {
+              setError(`El campo ${columnId} no puede estar vacío.`);
+              return;
+            }
             setData(old => 
               old.map ((row, index) => {
                 if(index === rowIndex){
@@ -190,6 +220,7 @@ function SimpleTable () {
                 return row
               })
               )
+              setError("");
           }
         },
         pagination: {
@@ -198,18 +229,20 @@ function SimpleTable () {
           pageCount: Math.ceil(data.length / pageSize),
           manualPagination: true,
         },
-    })
+    });
+
+    const onChangePage = (page) => {
+      
+      table.setPageIndex(page - 1);
+      console.log("HOLAAAAA", page);
+    };
 
     useEffect(() => {
       
       table.setPageSize(pageSize);
     }, [table, pageSize]);
 
-    // const randomizeColumns = () => {
-    //     table.setColumnOrder(
-    //       faker.helpers.shuffle(table.getAllLeafColumns().map(d => d.id))
-    //     )
-    //   };
+
 
     const filterByDate = useCallback(() => {
       if(startDate && endDate){
@@ -312,6 +345,7 @@ function SimpleTable () {
                                     headerGroup.headers.map(header => (
                                         <th key={header.id}
                                         colSpan={header.colSpan}
+                                        className={`column-${header.id}`}
                                         onClick={header.column.getToggleSortingHandler()}
                                         >
                                             {header.isPlaceholder? null :(
@@ -368,13 +402,25 @@ function SimpleTable () {
                   }
                 </tfoot>
             </table>
-            <input value={ table.getPageCount()} />
-            <button type="button" onClick={() => table.setPageIndex(0)}>Primer página</button>
+            <div>
+              <Pagination
+                defaultCurrent={0}
+                onChange={onChangePage}    
+                total={200}
+                defaultPageSize={15}
+              />
+
+            </div>
+
+            <div>
+              {error && <p style={{ color: 'red' }}>{error}</p>}
+            </div>
+            {/* <button type="button" onClick={() => table.setPageIndex(0)}>Primer página</button>
             <button type="button" onClick={() => table.previousPage()}>Página anterior</button>
             <button type="button" onClick={() => table.nextPage()}>Página siguiente</button>
             <button type="button" onClick={() => table.setPageIndex(table.getPageCount() - 1)}>
               Última página
-            </button>
+            </button> */}
            
         </div>
     )
