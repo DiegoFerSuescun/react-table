@@ -257,6 +257,15 @@ function SimpleTable () {
         table.setPageIndex(0);
        }
     }, [startDate, endDate, setData, table] )
+
+    const handleSearch = useCallback((value) => {
+      if (!data.some((row) => row.firstName.includes(value))) {
+        setError("No se encontraron resultados.");
+      } else {
+        setError("");
+      }
+      setFiltering(value);
+    }, [data]);
     
 
     return (
@@ -265,10 +274,11 @@ function SimpleTable () {
             <div>
             <input type="text" 
             value={filtering}
-            onChange={e=> setFiltering(e.target.value)}
+            onChange={e=> handleSearch(e.target.value)}
             />
-
+            
             <label>
+
             <input
               {...{
                 type: "checkbox",
@@ -336,7 +346,9 @@ function SimpleTable () {
             
           </select>
         </div>
-            <table>
+             {error ? <p style={{ color: 'red' }}>{error}</p> : 
+             
+             <table>
                 <thead>
                     {
                         table.getHeaderGroups().map(headerGroup => (
@@ -402,19 +414,22 @@ function SimpleTable () {
                   }
                 </tfoot>
             </table>
+             
+             }
             <div>
-              <Pagination
-                defaultCurrent={0}
-                onChange={onChangePage}    
-                total={200}
-                defaultPageSize={15}
-              />
+                <Pagination
+                  defaultCurrent={0}
+                  onChange={onChangePage}    
+                  total={200}
+                  defaultPageSize={15}
+                />
 
-            </div>
+              </div>
+            
 
-            <div>
-              {error && <p style={{ color: 'red' }}>{error}</p>}
-            </div>
+              <div>
+                {error && <p style={{ color: 'red' }}>{error}</p>}
+              </div>
             {/* <button type="button" onClick={() => table.setPageIndex(0)}>Primer página</button>
             <button type="button" onClick={() => table.previousPage()}>Página anterior</button>
             <button type="button" onClick={() => table.nextPage()}>Página siguiente</button>
